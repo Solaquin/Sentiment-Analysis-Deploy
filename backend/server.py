@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 import tensorflow as tf
 import numpy as np
-from utils.tokenization_module import TokenizerModule
+from backend.utils.tokenization_module import TokenizerModule
 import os
 
 # Rutas relativas
