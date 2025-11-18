@@ -36,7 +36,7 @@ function renderReviews(reviews, data)
         icon.alt = sentiment === 'positive' ? 'Positive Icon' : 'Negative Icon';
         const label = document.createElement('div');
         label.className = 'sentiment-label';
-        label.innerHTML = `<strong>${sentiment === 'positive' ? `Positivo (${percentage})` : `Negativo (${1 - percentage})`}</strong><div class="sentiment-sub">Esta reseña expresa una experiencia ${sentiment === 'positive' ? 'positiva' : 'negativa'}</div>`;
+        label.innerHTML = `<strong>${sentiment === 'positive' ? `Positivo (${(percentage * 100).toFixed(2)}%)` : `Negativo (${((1 - percentage)*100).toFixed(2)}%)`}</strong><div class="sentiment-sub">Esta reseña expresa una experiencia ${sentiment === 'positive' ? 'positiva' : 'negativa'}</div>`;
 
         sentimentBlock.appendChild(icon);
         sentimentBlock.appendChild(label);
@@ -68,19 +68,33 @@ async function analizarSentimiento() {
     const raw = textarea.value;
     if (raw === '') return;
 
-    const reviews = splitReviewsFromText(raw);
+    // Feedback visual
+    analyzeBtn.disabled = true;
+    const originalText = analyzeBtn.textContent;
+    analyzeBtn.textContent = "Analizando...";
 
-    const response = await fetch("/predict", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ reviews: reviews })
-    });
+    try {
+        const reviews = splitReviewsFromText(raw);
 
-    const data = await response.json();
-    renderReviews(reviews, data.predictions)
-    console.log("Predicciones:", data.predictions);
+        const response = await fetch("/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ reviews })
+        });
+
+        const data = await response.json();
+        renderReviews(reviews, data.predictions);
+
+        console.log("Predicciones:", data.predictions);
+
+    } catch (error) {
+        console.error("Error en la petición:", error);
+
+    } finally {
+        // Restaurar botón
+        analyzeBtn.disabled = false;
+        analyzeBtn.textContent = originalText;
+    }
 }
 
 uploadBtn.addEventListener('click', () => fileInput.click());
